@@ -1,9 +1,21 @@
 import React from 'react'
 
 export default function Reply(props) {
-  const [counter, setCounter] = React.useState(props.counter)
+  const [score, setScore] = React.useState(props.counter)
 
+  function increaseScore() {
+    if (score > props.counter) {
+      return ''
+    }
+    return setScore((prevDate) => prevDate + 1)
+  }
 
+  function decreaseScore() {
+    if (score < props.counter) {
+      return ''
+    }
+    setScore((prevDate) => prevDate - 1)
+  }
   return (
     <div className='reply'>
       <hr className='reply-divider' />
@@ -19,9 +31,9 @@ export default function Reply(props) {
         </p>
         <div className='comment-info'>
           <div className='comment-rate'>
-            <img src='../images/icon-plus.svg' />
-            <p>{counter}</p>
-            <img src='../images/icon-minus.svg' />
+            <img onClick={increaseScore} src='../images/icon-plus.svg' />
+            <p>{score}</p>
+            <img onClick={decreaseScore} src='../images/icon-minus.svg' />
           </div>
           {props.currentUser ? (
             <div className='comment-edit'>
