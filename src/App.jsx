@@ -25,7 +25,6 @@ export default function App() {
 
   function addComment() {
     const time = new Date().toDateString().split(' ')
-    console.log(comment)
     setData((prevData) => {
       return {
         ...prevData,
