@@ -37,32 +37,20 @@ export default function Reply(props) {
           </div>
           {props.currentUser ? (
             <div className='comment-edit'>
-              <span>
+              <span onClick={props.handleDelete}>
                 <img src='../images/icon-delete.svg' />
-                <span
-                  className='comment-edit-delete'
-                  onClick={props.handleDelete}
-                >
-                  Delete
-                </span>
+                <span className='comment-edit-delete'>Delete</span>
               </span>
-              <span>
+              <span onClick={props.handleEdit}>
                 <img src='../images/icon-edit.svg' />
-                <span className='comment-edit-edit' onClick={props.handleEdit}>
-                  Edit
-                </span>
+                <span className='comment-edit-edit'>Edit</span>
               </span>
             </div>
           ) : (
             <div className='comment-edit'>
-              <div>
+              <div onClick={props.handleReply}>
                 <img src='../images/icon-reply.svg' />
-                <span
-                  className='comment-edit-reply'
-                  onClick={props.handleReply}
-                >
-                  Reply
-                </span>
+                <span className='comment-edit-reply'>Reply</span>
               </div>
             </div>
           )}
