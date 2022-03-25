@@ -1,16 +1,19 @@
 import React from 'react'
 import Comment from '../components/Comment'
 import Reply from '../components/Reply'
+import AddComment from '../components/AddComment'
 import '../style.css'
 import dataJSON from '../data.json'
+import { nanoid } from 'nanoid'
 
 export default function App() {
-  const [comment, setComment] = React.useState('')
+  const [commentText, setCommentText] = React.useState('')
   const [model, setModel] = React.useState(false)
   const [data, setData] = React.useState(dataJSON)
+  const [addReply, setAddReply] = React.useState(false)
 
   function handleTextarea(e) {
-    setComment(e.target.value)
+    setCommentText(e.target.value)
   }
 
   function handleDelete() {
@@ -20,10 +23,27 @@ export default function App() {
     console.log(e)
   }
   function handleReply(e) {
-    console.log(e)
+    setAddReply(!addReply)
+    setData((prevData) => {
+      return {
+        ...prevData,
+        comments: prevData.comments.map((comment) => {
+          return comment.id === e.id
+            ? { ...comment, reply: !addReply }
+            : {
+                ...comment,
+                replies: comment.replies.map((commentReply) => {
+                  return commentReply.id === e.id
+                    ? { ...commentReply, reply: !addReply }
+                    : commentReply
+                }),
+              }
+        }),
+      }
+    })
   }
 
-  function addComment() {
+  function addComment(e) {
     const time = new Date().toDateString().split(' ')
     setData((prevData) => {
       return {
@@ -31,8 +51,8 @@ export default function App() {
         comments: [
           ...prevData.comments,
           {
-            id: 10,
-            content: comment,
+            id: nanoid(),
+            content: commentText,
             createdAt: `${time[1]} ${time[2]} ${time[3]}`,
             score: 0,
             user: {
@@ -47,6 +67,40 @@ export default function App() {
         ],
       }
     })
+  }
+
+  function createReply(e) {
+    const time = new Date().toDateString().split(' ')
+    console.log(e)
+    setData((prevData) => {
+      return {
+        ...prevData,
+        comments: prevData.comments.map((comment) => {
+          return comment.id === e.id
+            ? {
+                ...comment,
+                ...(comment.reply = true),
+                ...comment.replies.push({
+                  id: nanoid(),
+                  content: commentText,
+                  createdAt: `${time[1]} ${time[2]} ${time[3]}`,
+                  score: 0,
+                  replyingTo: e.user.username,
+                  user: {
+                    image: {
+                      png: './images/avatars/image-juliusomo.png',
+                      webp: './images/avatars/image-juliusomo.webp',
+                    },
+                    username: 'juliusomo',
+                  },
+                  replies: [],
+                }),
+              }
+            : comment
+        }),
+      }
+    })
+    setAddReply(false)
   }
 
   function deleteComment(e) {
@@ -111,6 +165,15 @@ export default function App() {
           handleEdit={() => handleEdit(comment)}
           handleReply={() => handleReply(comment)}
         />
+        {comment.reply === true && (
+          <AddComment
+            textarea_placeholder={'Reply'}
+            handleTextarea={handleTextarea}
+            comment={commentText}
+            handleComment={() => createReply(comment)}
+            currentUser={currentUserImg}
+          />
+        )}
         {comment.replies.length >= 1 ? (
           <>
             {comment.replies.map((reply) => {
@@ -155,6 +218,15 @@ export default function App() {
                     handleEdit={() => handleEdit(reply)}
                     handleReply={() => handleReply(reply)}
                   />
+                  {reply.reply === true && (
+                    <AddComment
+                      textarea_placeholder={'Reply'}
+                      handleTextarea={handleTextarea}
+                      comment={commentText}
+                      handleComment={() => createReply(reply)}
+                      currentUser={currentUserImg}
+                    />
+                  )}
                 </>
               )
             })}
@@ -169,17 +241,13 @@ export default function App() {
   return (
     <div className='app'>
       {comments}
-      <div className='add-comment'>
-        <textarea placeholder='Add a comment..' onInput={handleTextarea}>
-          {comment}
-        </textarea>
-        <div className='send-info'>
-          <img className='author-logo' src={currentUserImg} />
-          <button onClick={addComment} className='send-btn'>
-            Send
-          </button>
-        </div>
-      </div>
+      <AddComment
+        textarea_placeholder={'Add a comment..'}
+        handleTextarea={handleTextarea}
+        comment={commentText}
+        handleComment={() => addComment()}
+        currentUser={currentUserImg}
+      />
     </div>
   )
 }
