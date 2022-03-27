@@ -5,25 +5,53 @@ import AddComment from '../components/AddComment'
 import '../style.css'
 import dataJSON from '../data.json'
 import { nanoid } from 'nanoid'
+import EditComment from '../components/EditComment'
 
 export default function App() {
   const [commentText, setCommentText] = React.useState('')
+  const [editText, setEditText] = React.useState('')
   const [model, setModel] = React.useState(false)
   const [data, setData] = React.useState(dataJSON)
   const [addReply, setAddReply] = React.useState(false)
+  const [editComment, setEditComment] = React.useState(false)
+  const [removeComment, setRemoveComment] = React.useState(false)
+  const [deleteThis, setDeleteThis] = React.useState('')
 
   function handleTextarea(e) {
     setCommentText(e.target.value)
   }
 
-  function handleDelete() {
-    setModel(true)
+  function handleDelete(e, state) {
+    if (removeComment === state) {
+      setDeleteThis(e)
+      setModel(true)
+    } else {
+      deleteComment(deleteThis)
+    }
   }
   function handleEdit(e) {
-    console.log(e)
+    setEditComment((prevData) => !prevData)
+    setData((prevData) => {
+      return {
+        ...prevData,
+        comments: prevData.comments.map((comment) => {
+          return comment.id === e.id
+            ? { ...comment, edit: !editComment }
+            : {
+                ...comment,
+                replies: comment.replies.map((commentReply) => {
+                  return commentReply.id === e.id
+                    ? { ...commentReply, edit: !editComment }
+                    : commentReply
+                }),
+              }
+        }),
+      }
+    })
   }
+
   function handleReply(e) {
-    setAddReply(!addReply)
+    setAddReply((prevData) => !prevData)
     setData((prevData) => {
       return {
         ...prevData,
@@ -43,7 +71,7 @@ export default function App() {
     })
   }
 
-  function addComment(e) {
+  function addComment() {
     const time = new Date().toDateString().split(' ')
     setData((prevData) => {
       return {
@@ -53,7 +81,7 @@ export default function App() {
           {
             id: nanoid(),
             content: commentText,
-            createdAt: `${time[1]} ${time[2]} ${time[3]}`,
+            createdAt: `${time[1]} ${time[2]}`,
             score: 0,
             user: {
               image: {
@@ -67,11 +95,49 @@ export default function App() {
         ],
       }
     })
+    setCommentText('')
+  }
+
+  function updateEdit(e, text) {
+    setData((prevData) => {
+      return {
+        ...prevData,
+        comments: prevData.comments.map((comment) => {
+          const editThis = comment.replies.filter((reply) => {
+            if (comment.id === e.id) {
+              return {
+                ...comment,
+                ...(comment.edit = false),
+                ...(comment.content = text),
+              }
+            } else if (reply.id === e.id) {
+              return {
+                ...comment,
+                ...(reply.edit = false),
+                ...(reply.content = text),
+              }
+            }
+          })
+          console.log(editThis.length > 1)
+          if (editThis.length > 1 === true) {
+            return comment
+          } else {
+            return {
+              ...comment,
+              ...(comment.edit = false),
+              ...(comment.content = text),
+            }
+          }
+        }),
+      }
+    })
+    handleEdit(e)
   }
 
   function createReply(e) {
     const time = new Date().toDateString().split(' ')
-    console.log(e)
+    handleReply(e)
+
     setData((prevData) => {
       return {
         ...prevData,
@@ -83,7 +149,7 @@ export default function App() {
                 ...comment.replies.push({
                   id: nanoid(),
                   content: commentText,
-                  createdAt: `${time[1]} ${time[2]} ${time[3]}`,
+                  createdAt: `${time[1]} ${time[2]}`,
                   score: 0,
                   replyingTo: e.user.username,
                   user: {
@@ -132,46 +198,47 @@ export default function App() {
   const comments = data.comments.map((comment) => {
     return (
       <>
-        {model && (
-          <div className='model-div'>
-            <dialog open={model} id='model'>
-              <h2>Delete comment</h2>
-              <p>
-                Are you sure you want to delete this comment? This will remove
-                the comment and can't be undone
-              </p>
-              <div className='flex'>
-                <button className='no-delete' onClick={() => setModel(false)}>
-                  No, cancel
-                </button>
-                <button
-                  className='yes-delete'
-                  onClick={() => deleteComment(comment)}
-                >
-                  Yes, Delete
-                </button>
-              </div>
-            </dialog>
-          </div>
+        {!comment.edit && (
+          <Comment
+            counter={comment.score}
+            content={comment.content}
+            createdAt={comment.createdAt}
+            username={comment.user.username}
+            currentUser={comment.user.username === data.currentUser.username}
+            image={comment.user.image.png}
+            handleDelete={() => handleDelete(comment, false)}
+            handleEdit={() => handleEdit(comment)}
+            handleReply={() => handleReply(comment)}
+          />
         )}
-        <Comment
-          counter={comment.score}
-          content={comment.content}
-          createdAt={comment.createdAt}
-          username={comment.user.username}
-          currentUser={comment.user.username === data.currentUser.username}
-          image={comment.user.image.png}
-          handleDelete={handleDelete}
-          handleEdit={() => handleEdit(comment)}
-          handleReply={() => handleReply(comment)}
-        />
         {comment.reply === true && (
           <AddComment
             textarea_placeholder={'Reply'}
             handleTextarea={handleTextarea}
-            comment={commentText}
+            comment={''}
             handleComment={() => createReply(comment)}
             currentUser={currentUserImg}
+            sendButton={'Reply'}
+          />
+        )}
+        {comment.edit === true && (
+          <EditComment
+            counter={comment.score}
+            content={comment.content}
+            createdAt={comment.createdAt}
+            username={comment.user.username}
+            image={comment.user.image.png}
+            handleDelete={() => handleDelete(comment, false)}
+            handleEdit={() => handleEdit(comment)}
+            handleReply={() => handleReply(comment)}
+            updateEdit={(text) => updateEdit(comment, text)}
+            textarea_placeholder={'edit'}
+            textarea_value={comment.content}
+            handleTextarea={handleTextarea}
+            comment={editText}
+            handleComment={() => addComment()}
+            currentUser={currentUserImg}
+            sendButton={'Update'}
           />
         )}
         {comment.replies.length >= 1 ? (
@@ -179,45 +246,22 @@ export default function App() {
             {comment.replies.map((reply) => {
               return (
                 <>
-                  {model && (
-                    <div className='model-div'>
-                      <dialog open={model} id='model'>
-                        <h2>Delete comment</h2>
-                        <p>
-                          Are you sure you want to delete this comment? This
-                          will remove the comment and can't be undone
-                        </p>
-                        <div className='flex'>
-                          <button
-                            className='no-delete'
-                            onClick={() => setModel(false)}
-                          >
-                            No, cancel
-                          </button>
-                          <button
-                            className='yes-delete'
-                            onClick={() => deleteComment(reply)}
-                          >
-                            Yes, Delete
-                          </button>
-                        </div>
-                      </dialog>
-                    </div>
+                  {!reply.edit && (
+                    <Reply
+                      replyingTo={reply.replyingTo}
+                      counter={reply.score}
+                      content={reply.content}
+                      createdAt={reply.createdAt}
+                      username={reply.user.username}
+                      image={reply.user.image.png}
+                      currentUser={
+                        reply.user.username === data.currentUser.username
+                      }
+                      handleDelete={() => handleDelete(reply, false)}
+                      handleEdit={() => handleEdit(reply)}
+                      handleReply={() => handleReply(reply)}
+                    />
                   )}
-                  <Reply
-                    replyingTo={reply.replyingTo}
-                    counter={reply.score}
-                    content={reply.content}
-                    createdAt={reply.createdAt}
-                    username={reply.user.username}
-                    image={reply.user.image.png}
-                    currentUser={
-                      reply.user.username === data.currentUser.username
-                    }
-                    handleDelete={handleDelete}
-                    handleEdit={() => handleEdit(reply)}
-                    handleReply={() => handleReply(reply)}
-                  />
                   {reply.reply === true && (
                     <AddComment
                       textarea_placeholder={'Reply'}
@@ -225,6 +269,27 @@ export default function App() {
                       comment={commentText}
                       handleComment={() => createReply(reply)}
                       currentUser={currentUserImg}
+                      sendButton={'Reply'}
+                    />
+                  )}
+                  {reply.edit === true && (
+                    <EditComment
+                      counter={reply.score}
+                      content={reply.content}
+                      createdAt={reply.createdAt}
+                      username={reply.user.username}
+                      image={reply.user.image.png}
+                      handleDelete={() => handleDelete(reply, false)}
+                      handleEdit={() => handleEdit(reply)}
+                      handleReply={() => handleReply(reply)}
+                      updateEdit={(text) => updateEdit(reply, text)}
+                      textarea_placeholder={'edit'}
+                      textarea_value={reply.content}
+                      handleTextarea={handleTextarea}
+                      comment={editText}
+                      handleComment={() => addComment()}
+                      currentUser={currentUserImg}
+                      sendButton={'Update'}
                     />
                   )}
                 </>
@@ -241,12 +306,36 @@ export default function App() {
   return (
     <div className='app'>
       {comments}
+      {model && (
+        <div className='model-div'>
+          <dialog open={model} id='model'>
+            <h2>Delete comment</h2>
+            <p>
+              Are you sure you want to delete this comment? This will remove the
+              comment and can't be undone.
+            </p>
+            <div className='flex'>
+              <button className='no-delete' onClick={() => setModel(false)}>
+                No, cancel
+              </button>
+              <button
+                className='yes-delete'
+                onClick={() => handleDelete('', true)}
+              >
+                Yes, Delete
+              </button>
+            </div>
+          </dialog>
+        </div>
+      )}
       <AddComment
         textarea_placeholder={'Add a comment..'}
         handleTextarea={handleTextarea}
-        comment={commentText}
+        comment={''}
+        textarea_value={commentText}
         handleComment={() => addComment()}
         currentUser={currentUserImg}
+        sendButton={'Send'}
       />
     </div>
   )
