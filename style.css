@@ -26,6 +26,23 @@ textarea {
   resize: none;
   font-family: 'Rubik', sans-serif;
   min-height: 100px;
+  line-height: 26px;
+}
+
+.edit-text {
+  width: 90%;
+  margin-bottom: 20px;
+}
+
+.update-btn {
+  margin-block: 15px;
+  margin-right: auto;
+}
+
+@media (min-width: 760px) {
+  .update-btn {
+    margin-right: 0;
+  }
 }
 
 button {
@@ -75,7 +92,13 @@ button {
 .user-info {
   justify-content: start;
   align-items: center;
-  gap: 20px;
+  gap: 10px;
+}
+
+@media (min-width: 760px) {
+  .user-info {
+    gap: 20px;
+  }
 }
 
 .user-logo,
@@ -99,7 +122,7 @@ button {
 
 .comment-info {
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
 }
 
 .comment-rate {
@@ -112,6 +135,12 @@ button {
   border-radius: 10px;
   padding: 0px 7px;
   height: 45px;
+}
+
+@media (max-width: 345px) {
+  .comment-rate {
+    column-gap: 10px;
+  }
 }
 
 .comment-rate img {
@@ -147,12 +176,13 @@ button {
 }
 
 .reply-section {
-  margin: 10px 10px;
+  padding: 5px 0;
+  margin: 10px 7px;
   max-width: 320px;
 }
 
 .reply-divider {
-  margin-left: 20px;
+  margin-left: 10px;
   border: 0.1px solid var(--primary-light-grayish-blue);
 }
 
@@ -161,6 +191,7 @@ button {
   flex-direction: column;
   align-items: stretch;
   width: 100%;
+  padding: 20px;
 }
 
 .send-info {
@@ -176,14 +207,14 @@ button {
 .you-card {
   color: var(--neutral-white);
   background-color: var(--primary-moderate-blue);
-  padding: 2px 15px;
+  padding: 1px 5px;
   border-radius: 4px;
 }
 
 .model-div {
   position: fixed;
   z-index: 1;
-  padding-top: 300px;
+  padding-top: 200px;
   left: 0;
   top: 0;
   width: 100%;
@@ -203,7 +234,15 @@ button {
 #model {
   border: none;
   border-radius: 10px;
+  max-width: 300px;
+  padding: 20px;
   margin: 10px;
+}
+
+@media (min-width: 380px) {
+  #model {
+    margin: auto;
+  }
 }
 
 #model h2 {
@@ -231,6 +270,11 @@ button {
   display: none;
 }
 
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
 .flex-desktop {
   display: flex;
   justify-content: center;
@@ -248,7 +292,7 @@ button {
   display: none;
 }
 
-@media (min-width: 700px) {
+@media (min-width: 760px) {
   .app {
     font-size: 16px;
   }
@@ -256,6 +300,16 @@ button {
   .reply-section,
   .add-comment {
     max-width: 750px;
+  }
+
+  .add-comment {
+    flex-direction: row;
+    align-items: start;
+    gap: 10px;
+  }
+
+  textarea {
+    width: 100%;
   }
 
   .reply-section {
@@ -286,5 +340,6 @@ button {
     gap: 5px;
     padding: 40px 15px;
     margin-right: 20px;
+    font-weight: 500;
   }
 }
