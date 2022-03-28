@@ -118,7 +118,6 @@ export default function App() {
               }
             }
           })
-          console.log(editThis.length > 1)
           if (editThis.length > 1 === true) {
             return comment
           } else {
